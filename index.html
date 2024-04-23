@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Platformer Game</title>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+    canvas {
+        display: block;
+        margin: auto;
+        background-color: #f0f0f0;
+        border: 1px solid #000;
+    }
+</style>
+</head>
+<body>
+<canvas id="gameCanvas" width="800" height="400"></canvas>
+
+<script>
+    var canvas = document.getElementById("gameCanvas");
+    var ctx = canvas.getContext("2d");
+
+    var player = {
+        x: 50,
+        y: canvas.height - 50,
+        width: 30,
+        height: 30,
+        speed: 5
+    };
+
+    var gravity = 0.5;
+    var obstacles = [];
+    var isJumping = false;
+
+    function createObstacle(x, y, width, height) {
+        return {
+            x: x,
+            y: y,
+            width: width,
+            height: height
+        };
+    }
+
+    function drawPlayer() {
+        ctx.fillStyle = "#ff0000";
+        ctx.fillRect(player.x, player.y, player.width, player.height);
+    }
+
+    function drawObstacles() {
+        ctx.fillStyle = "#0000ff";
+        obstacles.forEach(function (obstacle) {
+            ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+        });
+    }
+
+    function update() {
+        // Move player left or right
+        if (rightPressed && player.x < canvas.width - player.width) {
+            player.x += player.speed;
+        } else if (leftPressed && player.x > 0) {
+            player.x -= player.speed;
+        }
+
+        // Apply gravity
+        if (player.y < canvas.height - player.height) {
+            player.y += gravity;
+        }
+
+        // Check for collisions with obstacles
+        obstacles.forEach(function (obstacle) {
+            if (player.x < obstacle.x + obstacle.width &&
+                player.x + player.width > obstacle.x &&
+                player.y < obstacle.y + obstacle.height &&
+                player.y + player.height > obstacle.y) {
+                // Collision detected, game over
+                alert("Game Over");
+                document.location.reload();
+            }
+        });
+
+        // Draw everything
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawPlayer();
+        drawObstacles();
+
+        requestAnimationFrame(update);
+    }
+
+    // Create initial obstacles
+    obstacles.push(createObstacle(200, canvas.height - 50, 50, 50));
+    obstacles.push(createObstacle(400, canvas.height - 50, 50, 50));
+    obstacles.push(createObstacle(600, canvas.height - 50, 50, 50));
+
+    // Keyboard event listeners
+    var rightPressed = false;
+    var leftPressed = false;
+
+    document.addEventListener("keydown", keyDownHandler, false);
+    document.addEventListener("keyup", keyUpHandler, false);
+
+    function keyDownHandler(e) {
+        if (e.key === "Right" || e.key === "ArrowRight") {
+            rightPressed = true;
+        } else if (e.key === "Left" || e.key === "ArrowLeft") {
+            leftPressed = true;
+        } else if (e.key === "Space" || e.key === "ArrowUp") {
+            if (!isJumping) {
+                isJumping = true;
+                jump();
+            }
+        }
+    }
+
+    function keyUpHandler(e) {
+        if (e.key === "Right" || e.key === "ArrowRight") {
+            rightPressed = false;
+        } else if (e.key === "Left" || e.key === "ArrowLeft") {
+            leftPressed = false;
+        }
+    }
+
+    function jump() {
+        var jumpHeight = 100;
+        var jumpSpeed = 5;
+        var jumpInterval = setInterval(function () {
+            if (jumpHeight <= 0) {
+                clearInterval(jumpInterval);
+                isJumping = false;
+            } else {
+                if (player.y > canvas.height - player.height - jumpHeight) {
+                    player.y -= jumpSpeed;
+                    jumpHeight -= jumpSpeed;
+                }
+            }
+        }, 1000 / 60);
+    }
+
+    // Start the game loop
+    update();
+</script>
+</body>
+</html>
